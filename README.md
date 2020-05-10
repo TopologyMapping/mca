@@ -1,57 +1,36 @@
 # MCA
 
-This tool implements the algorithm described in the paper
-Classification of Load Balancing in the Internet (INFOCOM 2020).
+[![PyPI Version](https://img.shields.io/pypi/v/mca-traceroute.svg)](https://pypi.python.org/pypi/mca-traceroute/)  <!-- ignore_ppi -->
+[![Python Versions](https://img.shields.io/pypi/pyversions/mca-traceroute.svg)](https://pypi.python.org/pypi/mca-traceroute/)  <!-- ignore_ppi -->
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)  <!-- ignore_ppi -->
 
-## Dependencies
+This tool implements the Multipath Classification Algorithm (MCA), an extension to Paris traceroute and the Multipath Detection Algorithm (MDA). MCA can detect routers that perform load balancing and identify what fields in the IP and transport headers are used for load balancing.
 
+A more detailed explanation of MCA, together with a characterization of load balancing appeared in our INFOCOM 2020 paper:
+
+R. Almeida, Í. Cunha, R. Teixeira, D. Veitch, and C. Diot. "Classification of Load Balancing in the Internet". In Proc. IEEE INFOCOM, 2020. [PDF][1] [BibTeX][2]
+
+## Installation
+
+MCA has been tested on Linux. It requires Python 3.6+ and Scapy 2.4+. The latest version is available on [PyPI](https://pypi.python.org/pypi/mca-traceroute), the Python Package Index:
+
+``` {sh}
+pip3 install mca-traceroute
+mca-traceroute --help
 ```
-python 3.6.9
-scapy 2.4.3
+
+You can also run MCA as a Python module directly from the Git repository. You may need to install Scapy as `root` as MCA requires root privileges to execute.
+
+``` {sh}
+sudo pip3 install scapy
+git clone https://github.com/rlcalmeida/mca.git
+cd mca
+sudo python3 -m mca --help
 ```
 
-### Usage
+## Additional Resources
 
-```
-usage: mca.py [-h] [--max-ttl MAX_TTL] [--alpha ALPHA] [--max-nh MAX_NH]
-              [--max-border MAX_BORDER] [--gap-limit GAP_LIMIT]
-              [--fields FIELDS [FIELDS ...]] [--max-attempts MAX_ATTEMPTS]
-              [--wait-timeout WAIT_TIMEOUT] [--probe-type PROBE_TYPE]
-              [--pps PPS] [--instance-id INSTANCE_ID]
-              [--record-file RECORD_FILE]
-              dst_ip
+[Route Explorer](https://github.com/rlcalmeida/route-explorer) is a visualization framework for MCA results.  It renders MCA measurements in a Web browser using Javascript libraries and supports IP-to-AS, AS-to-name, and rDNS metadata.  Our paper's dataset and some example load balancers configuration are [publicly available](https://homepages.dcc.ufmg.br/~rlca/mca).
 
-positional arguments:
-  dst_ip                Host IPv4/v6 address to trace to
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --max-ttl MAX_TTL     Set the max number of hops. Default is 30
-  --alpha ALPHA         Level of confidence for MCA, one of 90, 95, 99.
-                        Default is 95
-  --max-nh MAX_NH       Max number of successors for a node in the graph.
-                        Default is 16
-  --max-border MAX_BORDER
-                        Max number of leaves in the graph at any time. Default
-                        is 16
-  --gap-limit GAP_LIMIT
-                        Max number of consecutive unhesponsive hops. Default
-                        is 3
-  --fields FIELDS [FIELDS ...]
-                        Header fields to use for load balancing
-                        detection/classification
-  --max-attempts MAX_ATTEMPTS
-                        Max number of attempts before discarding a probe.
-                        Default is 2
-  --wait-timeout WAIT_TIMEOUT
-                        Max time (in seconds) to wait for an answer. Default
-                        is 1
-  --probe-type PROBE_TYPE
-                        Set the probe type. Can be icmp, tcp, udp. Default is
-                        udp
-  --pps PPS             Max number of packets to send per second
-  --instance-id INSTANCE_ID
-                        MCA running instance identifier
-  --record-file RECORD_FILE
-                        Name of the file to write detailed measurement results
-```
+[1]: http://homepages.dcc.ufmg.br/~cunha/papers/almeida20infocom-mca.pdf
+[2]: https://homepages.dcc.ufmg.br/~cunha/papers/almeida20infocom-mca.txt
