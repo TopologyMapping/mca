@@ -1,5 +1,5 @@
+import ipaddress
 import struct
-import ipaddr
 
 
 class Record:
@@ -31,7 +31,7 @@ class Record:
             self._write_uint8(0)
             self._write_string(addr)
         else:
-            ip = ipaddr.IPAddress(addr)
+            ip = ipaddress.ip_address(addr)
             self._write_uint8(ip.version)
             if ip.version == 4:
                 self._write_uint32(int(ip))

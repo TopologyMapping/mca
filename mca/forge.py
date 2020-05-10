@@ -1,7 +1,8 @@
-import ipaddr
-import scapy.all
+import ipaddress
 import struct
 import sys
+
+import scapy.all
 
 
 class Forge:
@@ -34,8 +35,8 @@ class Forge:
     def ipv4(self):
         dst = self.probe.dst
         if 'daddr' in self.flow_ids:
-            dst = int(ipaddr.IPAddress(dst)) & 0xffffff00 | self.flow_ids['daddr']
-            dst = str(ipaddr.IPAddress(dst))
+            dst = int(ipaddress.IPv4Address(dst)) & 0xffffff00 | self.flow_ids['daddr']
+            dst = str(ipaddress.IPv4Address(dst))
 
         tos = self.flow_ids['tos'] if 'tos' in self.flow_ids else 0
 
@@ -44,8 +45,8 @@ class Forge:
     def ipv6(self):
         dst = self.probe.dst
         if 'daddr' in self.flow_ids:
-            dst = int(ipaddr.IPAddress(dst)) & 0xffffffffffffffffffffffffffffff00 | self.flow_ids['daddr']
-            dst = str(ipaddr.IPAddress(dst))
+            dst = int(ipaddress.IPv6Address(dst)) & 0xffffffffffffffffffffffffffffff00 | self.flow_ids['daddr']
+            dst = str(ipaddress.IPv6Address(dst))
 
         tc = self.flow_ids['tc'] if 'tc' in self.flow_ids else 0
         fl = self.flow_ids['fl'] if 'fl' in self.flow_ids else 0

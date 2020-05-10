@@ -1,7 +1,7 @@
-import ipaddr
 import base64
-import struct
+import ipaddress
 import json
+import struct
 
 
 class BinaryToJson():
@@ -116,9 +116,9 @@ class BinaryToJson():
         if ip_version == 0:
             return self._read_string()
         elif ip_version == 4:
-            return str(ipaddr.IPAddress(self._read_uint32()))
+            return str(ipaddress.IPv4Address(self._read_uint32()))
         else:
-            return str(ipaddr.IPAddress(self._read_uint128()))
+            return str(ipaddress.IPv6Address(self._read_uint128()))
 
     def _read_halting_list(self):
         n = self._read_uint32()
