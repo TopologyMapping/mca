@@ -433,7 +433,7 @@ class MCA:
         root = self.topology.add_node(0, self.src_ip)
         root.mca_node = True
 
-        self.max_ttl = self.paris_traceroute()
+        self.paris_traceroute()
 
         for ttl in range(0, self.max_ttl):
             border = self.topology.get_nodes_ttl(ttl, True)
