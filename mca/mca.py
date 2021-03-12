@@ -428,7 +428,7 @@ class MCA:
             ('uint8', self.halt_ttl)
         ])
 
-    def run(self):
+    def _run_mca(self):
         """
         Run the Multipath Classification Algorithm
         """
