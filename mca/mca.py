@@ -37,8 +37,6 @@ class MCA:
                  fields, max_attempts, wait_timeout, probe_type, pps,
                  instance_id):
 
-        init_time = time.time()
-
         self.ip_version = ipaddress.ip_address(dst_ip).version
         self.topology = topology.Topology()
         self.identifiers = identifiers.Identifiers(fields)
@@ -58,53 +56,6 @@ class MCA:
         self.dst_ip = dst_ip
         self.src_ip = self.probing.src_ip
         self.halt_ttl = 0
-
-        # Write header to the record
-        self.write_record('header', [
-            ('ipaddr', self.dst_ip),
-            ('ipaddr', self.probing.src_ip),
-            ('ipaddr', self.probing.gateway),
-            ('string', self.probing.interface),
-            ('string', self.probing.bpf_filter),
-            ('string', self.probing.probe_type),
-            ('uint32', self.probing.pps),
-            ('uint8', self.probing.max_attempts),
-            ('uint8', self.probing.wait_timeout),
-            ('uint8', self.alpha),
-            ('uint8', self.max_ttl),
-            ('uint8', self.gap_limit),
-            ('uint16', self.max_nh),
-            ('uint16', self.max_border),
-            ('string-list', self.fields),
-        ])
-
-        print('MCA to', self.dst_ip)
-
-        self.run()
-
-        # Write halting causes
-        halting_causes = []
-        for n in self.topology.nodes:
-            node = self.topology.nodes[n]
-            if node.halt:
-                halting_causes.append((node.ip, node.halt_cause))
-
-        self.write_record('halting', [
-            ('halting-list', halting_causes)
-        ])
-
-        finish_time = time.time()
-
-        # Write statistics
-        self.write_record('stats', [
-            ('time', init_time),
-            ('time', finish_time),
-            ('uint32', self.probing.sent_packets),
-            ('uint32', self.probing.matched_packets),
-            ('uint32', self.probing.matches_on_retry),
-            ('uint32', self.probing.retries),
-            ('uint8', self.halt_ttl)
-        ])
 
     def write_record(self, record_type, data):
         if self.record_data:
@@ -426,6 +377,58 @@ class MCA:
                 break
 
     def run(self):
+        """Run MCA, collect statistics."""
+
+        init_time = time.time()
+
+        # Write header to the record
+        self.write_record('header', [
+            ('ipaddr', self.dst_ip),
+            ('ipaddr', self.probing.src_ip),
+            ('ipaddr', self.probing.gateway),
+            ('string', self.probing.interface),
+            ('string', self.probing.bpf_filter),
+            ('string', self.probing.probe_type),
+            ('uint32', self.probing.pps),
+            ('uint8', self.probing.max_attempts),
+            ('uint8', self.probing.wait_timeout),
+            ('uint8', self.alpha),
+            ('uint8', self.max_ttl),
+            ('uint8', self.gap_limit),
+            ('uint16', self.max_nh),
+            ('uint16', self.max_border),
+            ('string-list', self.fields),
+        ])
+
+        print('MCA to', self.dst_ip)
+
+        self._run_mca()
+
+        # Write halting causes
+        halting_causes = []
+        for n in self.topology.nodes:
+            node = self.topology.nodes[n]
+            if node.halt:
+                halting_causes.append((node.ip, node.halt_cause))
+
+        self.write_record('halting', [
+            ('halting-list', halting_causes)
+        ])
+
+        finish_time = time.time()
+
+        # Write statistics
+        self.write_record('stats', [
+            ('time', init_time),
+            ('time', finish_time),
+            ('uint32', self.probing.sent_packets),
+            ('uint32', self.probing.matched_packets),
+            ('uint32', self.probing.matches_on_retry),
+            ('uint32', self.probing.retries),
+            ('uint8', self.halt_ttl)
+        ])
+
+    def _run_mca(self):
         """
         Run the Multipath Classification Algorithm
         """
@@ -470,4 +473,3 @@ class MCA:
                             nh = self.topology.find_node(n)
                             nh.per_packet_traffic = True
                         self.explore_per_packet_diamond(node, ttl)
-

@@ -93,12 +93,22 @@ def main():
 
     parser = __create_parser()
     args = parser.parse_args()
-    g = mca.mca.MCA(args.dst_ip, args.max_ttl, args.alpha, args.max_nh,
-            args.max_border, args.gap_limit, args.fields, args.max_attempts,
-            args.wait_timeout, args.probe_type, args.pps, args.instance_id)
+    mca_inst = mca.mca.MCA(args.dst_ip,
+                           args.max_ttl,
+                           args.alpha,
+                           args.max_nh,
+                           args.max_border,
+                           args.gap_limit,
+                           args.fields,
+                           args.max_attempts,
+                           args.wait_timeout,
+                           args.probe_type,
+                           args.pps,
+                           args.instance_id)
+    mca_inst.run()
 
     if args.record_file != '':
-        g.record_data.dump(args.record_file)
+        mca_inst.record_data.dump(args.record_file)
 
 if __name__ == '__main__':
     sys.exit(main())
