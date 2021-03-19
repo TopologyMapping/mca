@@ -1,7 +1,7 @@
 """
 This module contains:
-- A function to generate n random 16-bits flow identifiers;
-- A readily available gold tuple with 256 16-bits.
+- A function for generating n random 16-bits flow identifiers;
+- A readily available gold tuple with 256 16-bits flow identifiers.
 
 Example
 -------
