@@ -1,5 +1,6 @@
 import ipaddress
 import time
+from collections.abc import Sequence
 
 import mca.record as record
 import mca.probe as probe
@@ -33,9 +34,19 @@ class MCA:
         ]
     }
 
-    def __init__(self, dst_ip, max_ttl, alpha, max_nh, max_border, gap_limit,
-                 fields, max_attempts, wait_timeout, probe_type, pps,
-                 instance_id):
+    def __init__(self,
+                 dst_ip: str,
+                 max_ttl: int,
+                 alpha: int,
+                 max_nh: int,
+                 max_border: int,
+                 gap_limit: int,
+                 fields: Sequence[str],
+                 max_attempts: int,
+                 wait_timeout: int,
+                 probe_type: str,
+                 pps: int,
+                 instance_id: int) -> None:
 
         self.ip_version = ipaddress.ip_address(dst_ip).version
         self.topology = topology.Topology()
@@ -289,7 +300,7 @@ class MCA:
 
         return classification
 
-    def paris_traceroute(self):
+    def paris_traceroute(self) -> int:
         """
         Paris traceroute without varying the destination address
         """
@@ -376,7 +387,7 @@ class MCA:
             if len(next_hops) == 1:
                 break
 
-    def run(self):
+    def run(self) -> None:
         """Run MCA, collect statistics."""
 
         init_time = time.time()
@@ -428,7 +439,7 @@ class MCA:
             ('uint8', self.halt_ttl)
         ])
 
-    def _run_mca(self):
+    def _run_mca(self) -> None:
         """
         Run the Multipath Classification Algorithm
         """
