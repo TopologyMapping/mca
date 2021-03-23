@@ -1,0 +1,131 @@
+// This code generates a sequence of flow IDs with maximum entropy by
+// performing a brute-force search across all possible combinations of flow
+// IDs. It is extremely slow (e.g., takes forever even for 10x 10-bit flow
+// IDs).
+
+fn print_entropy_matrix(entropy: f64, matrix: &Vec<bool>, rows: usize, length: usize) {
+    print!("{:.10}", entropy);
+    for i in 0..rows {
+        print!(" ");
+        for j in 0..length {
+            print!("{:b}", matrix[i * length + j] as u8)
+        }
+    }
+    println!();
+}
+
+/* ResultHandler keeps track only of the matrices with the minimal entropy.  You need to call add_result() for each observed matrix, and then call close() at the end to print the matrices with the minimum entropy. */
+struct ResultHandler {
+    min_entropy: f64,
+    matrices: HashSet<Vec<bool>>,
+}
+
+impl ResultHandler {
+    fn add_result(self: &mut Self, entropy: f64, matrix: &Vec<bool>, _rows: usize, _length: usize) {
+        if entropy > self.min_entropy {
+            return;
+        }
+        if (entropy - self.min_entropy).abs() < 1e-10 {
+            self.matrices.insert(matrix.clone());
+            return;
+        }
+        if entropy < self.min_entropy {
+            self.matrices = HashSet::new();
+            self.matrices.insert(matrix.clone());
+            self.min_entropy = entropy
+        }
+    }
+    fn close(self: Self, rows: usize, length: usize) {
+        for matrix in self.matrices {
+            print_entropy_matrix(self.min_entropy, &matrix, rows, length);
+        }
+    }
+}
+
+fn process_matrix(matrix: &Vec<bool>, rows: usize, length: usize, handler: &mut ResultHandler) {
+    let mut global_entropy: f64 = 0.0;
+    for i in 1..=length {
+        // let mut layer_entropy: f64 = 0.0;
+        for combination in (0..length).combinations(i) {
+            let mut counts: Vec<u32> = vec![0; 1 << i];
+            for row in 0..rows {
+                let mut rmask: usize = 0;
+                for col in &combination {
+                    let index: usize = row * length + col;
+                    rmask <<= 1;
+                    if matrix[index] {
+                        rmask |= 0x1
+                    }
+                }
+                counts[rmask] += 1;
+                // println!("{:?} {:?} {:?}", &matrix, &combination, &counts);
+            }
+            let total: f64 = counts.iter().fold(0, |acc, &e| acc + e) as f64;
+            let entropy: f64 = counts.iter().filter(|&c| *c > 0u32).fold(0.0, |acc, &c| {
+                let p = (c as f64) / total;
+                acc + p * p.log2()
+            });
+            // layer_entropy += entropy;
+            global_entropy += entropy
+        }
+        // print!("{:.10} ", layer_entropy);
+    }
+    /* Exchange these two lines to go from printing all matrices to
+     * printing only the matrices with minimum entropy. */
+    handler.add_result(global_entropy, matrix, rows, length);
+    // print_entropy_matrix(global_entropy, matrix, rows, length);
+}
+
+fn previous_row_larger(matrix: &Vec<bool>, length: usize, i: usize) -> bool {
+    if i <= length || i % length != 0 {
+        return false;
+    }
+    let curr_row_start: usize = i - length;
+    let prev_row_start: usize = curr_row_start - length;
+    for j in 0..length {
+        if matrix[prev_row_start + j] > matrix[curr_row_start + j] {
+            return true;
+        } else if matrix[prev_row_start + j] < matrix[curr_row_start + j] {
+            return false;
+        }
+    }
+    return false;
+}
+
+fn recurse(
+    matrix: &mut Vec<bool>,
+    rows: usize,
+    length: usize,
+    i: usize,
+    handler: &mut ResultHandler,
+) {
+    if previous_row_larger(matrix, length, i) {
+        return;
+    }
+    if i == rows * length {
+        process_matrix(matrix, rows, length, handler);
+        return;
+    }
+    matrix[i] = true;
+    recurse(matrix, rows, length, i + 1, handler);
+    matrix[i] = false;
+    recurse(matrix, rows, length, i + 1, handler);
+}
+
+fn generate_all_sequences(rows: usize, length: usize, handler: &mut ResultHandler) {
+    let mut matrix: Vec<bool> = vec![false; rows * length];
+    recurse(&mut matrix, rows, length, 0, handler);
+}
+
+fn main() -> Result<(), <usize as std::str::FromStr>::Err> {
+    let mut handler = ResultHandler {
+        min_entropy: 0.0,
+        matrices: HashSet::new(),
+    };
+    let args: Vec<String> = std::env::args().collect();
+    let rows: usize = args[1].parse::<usize>()?;
+    let length: usize = args[2].parse::<usize>()?;
+    generate_all_sequences(rows, length, &mut handler);
+    handler.close(rows, length);
+    return Ok(());
+}
