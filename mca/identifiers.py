@@ -1,12 +1,10 @@
 from collections import defaultdict
 from collections.abc import Sequence
 import dataclasses
-import logging
 from typing import Optional
 
 from mca.probe import Probe
 
-logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Identifiers:
@@ -58,8 +56,6 @@ class Identifiers:
         if flow_id not in self.flow_ids_by_hop[hop]:
             self.flow_ids_by_hop[hop][flow_id] = probe
             self.flow_ids_by_hop_ip[hop][ip][flow_id] = probe
-        else:
-            logger.warning(f'Tried to store probe with same TTL={hop} and flow id={flow_id} for ip={ip}.')
 
     def get_best_values(self, hop, ip, keeping_fields):
         flow_ids = list(self.flow_ids_by_hop_ip[hop][ip].keys())
