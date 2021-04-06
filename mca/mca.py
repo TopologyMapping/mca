@@ -73,7 +73,7 @@ class MCA:
             self.record_data.write_record(record_type, data)
 
     def send_flow_ids_ttl(self,
-                          flow_ids: Sequence[Sequence[int]],
+                          flow_ids: Sequence[tuple[int]],
                           ttl: int,
                           save: bool = True,
                           check_before: bool = True):
@@ -100,8 +100,8 @@ class MCA:
             # Check if the flowid was already sent in this ttl
             # if so we dont send it again if check_before is true
             if check_before:
-                p = self.identifiers.hop_has_flow_id(ttl, f)
-                if p:
+                p = self.identifiers.get_probe_for_hop_and_flow_id(ttl, f)
+                if p is not None:
                     probes.append(p)
                     continue
 
@@ -119,7 +119,7 @@ class MCA:
 
         if save:
             for p in probes:
-                self.identifiers.save_flow_id(p)
+                self.identifiers.store_probe_result(p)
 
         # TODO: save statistics
         for p in probes:
