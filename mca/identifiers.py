@@ -1,43 +1,57 @@
+from collections import defaultdict
+from collections.abc import Sequence
+import dataclasses
+from typing import Optional
+
+from mca.probe import Probe
+
+
+@dataclasses.dataclass
 class Identifiers:
+    fields: tuple[str]
+    flow_ids_by_hop: dict[dict[Probe]] = dataclasses.field(default_factory=lambda: defaultdict(dict), init=False)
+    flow_ids_by_hop_ip: dict[dict[dict[Probe]]] = dataclasses.field(default_factory=lambda: defaultdict(lambda: defaultdict(dict)), init=False)
+    values: dict[list[int]] = dataclasses.field(init=False)
 
-    def __init__(self, fields):
-        self.fields = fields
-        self.flow_ids_by_hop = {}
-        self.flow_ids_by_hop_ip = {}
-        self.values = {}
+    def __post_init__(self):
+        self.values = {field:list(range(1, 256)) for field in self.fields}
 
-        # Initialize flow ids
-        for f in fields:
-            fids = [(x + 1) for x in range(255)]
-            self.values[f] = fids
 
-    def hop_has_flow_id(self, hop, flow_id):
+    def get_probe_for_hop_and_flow_id(self, ttl: int, flow_id: tuple[int]) -> Optional[Probe]:
         """
-        Checks if a flow identifier was sent in a given hop
+        Checks if a flow identifier was sent in a given hop,
+        returning the probe object if True, None otherwise.
+
+        Args:
+            ttl (int): The ttl to check for the existence of the flow id
+            flow_id (tuple[int]): The flow id being searched for
+
+        Returns:
+            Optional[Probe]: The probe for the given ttl and flow_id if it exists; None otherwise.
+
         """
-        if hop not in self.flow_ids_by_hop:
-            return False
+        if ttl not in self.flow_ids_by_hop:
+            return None
 
-        if flow_id not in self.flow_ids_by_hop[hop]:
-            return False
+        if flow_id not in self.flow_ids_by_hop[ttl]:
+            return None
 
-        return self.flow_ids_by_hop[hop][flow_id]
+        return self.flow_ids_by_hop[ttl][flow_id]
 
-    def save_flow_id(self, probe):
+    def store_probe_result(self, probe: Probe) -> None:
         """
-        Saves a probe and keeps track of its flow identifier
+        Saves a probe and keeps track of its flow identifier.
+
+        Args:
+            probe (Probe): The probe to be saved.
+
+        Returns:
+            None
         """
 
         ip = probe.answer_ip
         hop = probe.ttl
         flow_id = probe.flowid
-
-        if hop not in self.flow_ids_by_hop:
-            self.flow_ids_by_hop[hop] = {}
-            self.flow_ids_by_hop_ip[hop] = {}
-
-        if ip not in self.flow_ids_by_hop_ip[hop]:
-            self.flow_ids_by_hop_ip[hop][ip] = {}
 
         if flow_id not in self.flow_ids_by_hop[hop]:
             self.flow_ids_by_hop[hop][flow_id] = probe
@@ -83,7 +97,28 @@ class Identifiers:
 
         return unique_flow_ids
 
-    def create_new_discovery_flow_id(self, hop, ignore=[]):
+    def create_new_discovery_flow_id(self,
+                                     hop: int,
+                                     ignore: Sequence[tuple[int]] = ()) -> tuple[int]:
+        """Create a new discovery flow ID.
+
+        Creates a new flow ID that has not been sent before
+        and is not in the list of flow IDs to ignore.
+
+        Args:
+            hop (int): hop for which a new flow ID will be created.
+            ignore (Sequence[tuple[int]]): sequence of flow ids to ignore when
+                creating the new flow ID.
+
+        Returns:
+            tuple[int]: the new flow ID, one int per field.
+
+        Examples:
+            This example assumes that 3 fields are being used:
+            >>> create_new_discovery_flow_id(0, [(1,1,1), (2,2,2), (3,3,3)])
+            (4,4,4)
+        """
+
         flow_ids = []
         if hop in self.flow_ids_by_hop:
             flow_ids = list(self.flow_ids_by_hop[hop].keys())
@@ -113,16 +148,13 @@ class Identifiers:
 
         return tuple(new_flow_id)
 
-    def create_new_discovery_flow_ids(self, hop, n):
+    def create_new_discovery_flow_ids(self, hop: int, n: int) -> list[tuple[int]]:
         flow_ids = set()
 
         while len(flow_ids) < n:
-
             f = self.create_new_discovery_flow_id(hop, flow_ids)
-
             if not f:
                 break
-
             flow_ids.add(f)
 
         return list(flow_ids)

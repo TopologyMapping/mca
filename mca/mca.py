@@ -72,19 +72,26 @@ class MCA:
         if self.record_data:
             self.record_data.write_record(record_type, data)
 
-    def send_flow_ids_ttl(self, flow_ids, ttl, save=True, check_before=True):
+    def send_flow_ids_ttl(self,
+                          flow_ids: Sequence[tuple[int]],
+                          ttl: int,
+                          save: bool = True,
+                          check_before: bool = True):
         """
-        Send TTL limited probes, one for each flow identifier on the list
-        This function waits for all answers and retries
+        Send TTL limited probes, one for each flow identifier on the list.
+        This function waits for all answers and retries.
 
         Args:
-            flow_ids:
-            ttl:
-            save:
-            check_before:
+            flow_ids (Sequence[Sequence[int]]): List of tuples of flow id indexes.
+                Each flow id index in the tuple corresponds to a specific field.
+            ttl (int): destination TTL value for the probes to be sent.
+            save (bool): whether the probes should be saved (Identifiers
+                flow_ids_by_hop & flow_ids_by_hop_ip).
+            check_before (bool): if True, check if a given probe was already sent
+                for a given TTL, flow id and don't send again if that is the case.
 
         Returns:
-            The set of probes sent
+            list[Probe]: List of the sent probes.
         """
 
         probes = []
@@ -93,8 +100,8 @@ class MCA:
             # Check if the flowid was already sent in this ttl
             # if so we dont send it again if check_before is true
             if check_before:
-                p = self.identifiers.hop_has_flow_id(ttl, f)
-                if p:
+                p = self.identifiers.get_probe_for_hop_and_flow_id(ttl, f)
+                if p is not None:
                     probes.append(p)
                     continue
 
@@ -112,7 +119,7 @@ class MCA:
 
         if save:
             for p in probes:
-                self.identifiers.save_flow_id(p)
+                self.identifiers.store_probe_result(p)
 
         # TODO: save statistics
         for p in probes:
@@ -300,20 +307,17 @@ class MCA:
 
         return classification
 
-    def paris_traceroute(self) -> int:
+    def paris_traceroute(self) -> None:
         """
-        Paris traceroute without varying the destination address
+        Paris traceroute without varying the destination address.
         """
 
         probes = []
         path = []
         max_ttl = 0
 
-        # Create the flow identifier to be used
-        flow_id = self.identifiers.create_new_discovery_flow_id(0)
-        flow_id = list(flow_id)
+        flow_id = list(self.identifiers.create_new_discovery_flow_id(0))
 
-        # TODO:
         if 'daddr' in self.fields:
             addr = int(ipaddress.ip_address(self.dst_ip))
             flow_id[self.fields.index('daddr')] = addr & 0xff
@@ -369,8 +373,6 @@ class MCA:
             ('ipaddr-list', path),
             ('uint8', max_ttl)
         ])
-
-        return max_ttl + 1
 
     def explore_per_packet_diamond(self, node, node_ttl):
         """
