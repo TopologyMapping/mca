@@ -13,6 +13,8 @@ class Identifiers:
     flow_ids_by_hop_ip: dict[dict[dict[Probe]]] = dataclasses.field(default_factory=lambda: defaultdict(lambda: defaultdict(dict)), init=False)
     values: dict[list[int]] = dataclasses.field(init=False)
 
+    extended_classification_flow_id_index_by_hop_and_ip: dict[dict[int]] = dataclasses.field(default_factory = lambda: defaultdict(lambda: defaultdict(lambda: 0)), init=False)
+
     def __post_init__(self):
         self.values = {field:list(range(1, 256)) for field in self.fields}
 
@@ -217,3 +219,30 @@ class Identifiers:
 
     def flow_id_to_dict(self, flow_id):
         return {self.fields[i]: flow_id[i] for i in range(len(self.fields))}
+
+    def create_new_extended_classification_flow_id_index(self, ttl: int, ip: str) -> Optional[int]:
+        """Create a new extended classification flow id index for a given ttl and ip.
+
+        Creates a new extended classification flow id
+        index for a given ttl and ip, an int index value
+        for the high entropy flow id list.
+
+        Args:
+            hop (int): hop for which a new flow ID will be created.
+            ip (str): ip of the interface for which a new flow ID will
+                be created.
+
+        Returns:
+            Optional[int]: the new flow ID index if one is available;
+                None otherwise.
+
+        Examples:
+            >>> create_new_extended_classification_flow_id_index(0, '8.8.4.4')
+            0
+
+        """
+        value = self.extended_classification_flow_id_index_by_hop_and_ip[ttl][ip]
+        if value > 255:
+            return None
+        self.extended_classification_flow_id_index_by_hop_and_ip[ttl][ip] += 1
+        return value

@@ -486,3 +486,76 @@ class MCA:
                             nh = self.topology.find_node(n)
                             nh.per_packet_traffic = True
                         self.explore_per_packet_diamond(node, ttl)
+
+    def send_extended_classification_probe(self,
+                                           flow_id_indices: tuple[int],
+                                           extended_classification_flow_id_index: int,
+                                           ttl: int):
+        """
+        Send one TTL limited extended classification probe.
+        This function waits for all answers and retries.
+
+        Args:
+            flow_id_indices (tuple[int]): The flow indentifier
+                indices used to find the given next interface
+                of a load balancer during MDA.
+            extended_classification_flow_id_index (int): a single
+                index to be used for the given option/extension
+                header for evaluating chaining correctness.
+            ttl (int): The radius of the node being evaluated,
+                child of a load balancer.
+
+        Returns:
+            list[Probe]: List of the sent probes.
+        """
+        p = probe.Probe(flow_id_indices, ttl, self.dst_ip, extended_classification_flow_id_index)
+        self.probing.send_probe(p)
+        self.probing.wait()
+        return p
+
+    def load_balancer_node_chaining_correctness_classification(self, ttl: int, load_balancer_node: topology.Node) -> None:
+        """Evaluates the chaining correctness of a node
+
+        Resends the probe used to discover a child interface
+        of a load balancer a given number of times, according to
+        the level of confidence, adding either options (IPv4) or
+        extension headers (IPv6) to evaluate the chaining
+        correctness of the load balancer.
+
+        Args:
+            ttl (int): The radius of the node to be evaluated.
+            load_balancer_node (topology.Node): The load balancer
+                node to be evaluated for chaining correctness.
+
+        Returns:
+            None
+        """
+
+        probes_count = self.nprobes[self.alpha][2]
+        child_node = load_balancer_node.next_hops[0]
+        child_ttl = ttl + 1
+        flow_id_indexes = identifiers.get_discovery_flow_ids(child_ttl, child_node.ip)[0]
+
+        for _ in range(probes_count):
+            extended_classification_flow_id_index = identifiers.create_new_extended_classification_flow_id_index(child_ttl, child_node.ip)
+            probe = self.send_extended_classification_probe(flow_id_indexes, extended_classification_flow_id_index, child_ttl)
+            if probe.answer_ip != child_node.ip:
+                load_balancer_node.chaining_correctness = False
+                return
+
+    def run_extended_classification(self) -> None:
+        """Runs the extended classification for the topology
+
+        Evaluates the chaining correctness of each
+        non per-packet load balancer node in
+        the topology.
+
+        Returns:
+            None
+        """
+        for ttl in range(0, self.max_ttl):
+            border = self.topology.get_nodes_ttl(ttl)
+            for node in border:
+                node_is_load_balancer = len(node.next_hops) > 1
+                if not node.per_packet_traffic and node_is_load_balancer:
+                    self.load_balancer_node_chaining_correctness_classification(ttl, node)

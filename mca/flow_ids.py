@@ -1,4 +1,4 @@
-flow_ids = (
+high_entropy_flow_ids = (
     56059, #[0]
     34390, #[1]
     52297, #[2]

@@ -1,16 +1,18 @@
 import time
 import threading
+from typing import Optional
 
 
 class Probe:
 
-    def __init__(self, flowid, ttl, dst, probe_id=0):
+    def __init__(self, flowid, ttl, dst, extended_classification_flow_id_index: Optional[int] = None, probe_id=0):
         self.probe_id = probe_id
         self.timeout = 2.0
         self.probe_scapy = None
         self.sent_time = None
         self.attempts = 0
         self.flowid = flowid
+        self.extended_classification_flow_id_index = extended_classification_flow_id_index
         self.ttl = ttl
         self.dst = dst
 
