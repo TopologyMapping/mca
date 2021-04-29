@@ -537,10 +537,10 @@ class MCA:
         flow_id_indexes = identifiers.get_discovery_flow_ids(child_ttl, child_node.ip)[0]
 
         for _ in range(probes_count):
-            extended_classification_flow_id_index = identifiers.create_new_extended_classification_flow_id_index(child_ttl, child_node.ip)
+            extended_classification_flow_id_index = identifiers.create_new_extclass_flow_id_index(child_ttl, child_node.ip)
             probe = self.send_extended_classification_probe(flow_id_indexes, extended_classification_flow_id_index, child_ttl)
             if probe.answer_ip != child_node.ip:
-                load_balancer_node.chaining_correctness = False
+                load_balancer_node.extclass_correctness = False
                 return
 
     def run_extended_classification(self) -> None:
