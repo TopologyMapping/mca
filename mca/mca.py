@@ -513,7 +513,7 @@ class MCA:
         self.probing.wait()
         return p
 
-    def load_balancer_node_chaining_correctness_classification(self, ttl: int, load_balancer_node: topology.Node) -> None:
+    def load_balancer_node_extclass_correctness(self, ttl: int, load_balancer_node: topology.Node) -> None:
         """Evaluates the chaining correctness of a node
 
         Resends the probe used to discover a child interface
@@ -558,4 +558,4 @@ class MCA:
             for node in border:
                 node_is_load_balancer = len(node.next_hops) > 1
                 if not node.per_packet_traffic and node_is_load_balancer:
-                    self.load_balancer_node_chaining_correctness_classification(ttl, node)
+                    self.load_balancer_node_extclass_correctness(ttl, node)
