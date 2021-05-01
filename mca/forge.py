@@ -3,6 +3,9 @@ import struct
 import sys
 
 import scapy.all
+from typing import Optional
+
+from mca.flow_ids import high_entropy_flow_ids
 
 
 class Forge:
@@ -22,6 +25,7 @@ class Forge:
         self.src_ip = src_ip
         self.probe = probe
         self.flow_ids = flow_ids
+        self.extended_classification_flow_id_index = self.probe.extended_classification_flow_id_index
         self.probe_type = probe_type
         self.ip_version = ip_version
 
@@ -40,7 +44,17 @@ class Forge:
 
         tos = self.flow_ids['tos'] if 'tos' in self.flow_ids else 0
 
-        self.packet /= scapy.all.IP(src=self.src_ip, dst=dst, ttl=self.probe.ttl, tos=tos)
+        ip_packet = scapy.all.IP(src=self.src_ip, dst=dst, ttl=self.probe.ttl, tos=tos)
+
+        if self.extended_classification_flow_id_index is not None:
+            ip_option = scapy.all.IPOption(copy_flag = 0, # Don't copy into all fragments of fragmentation
+                                            optclass = 2, # Case 2 format of option
+                                            option = 30, # RFC3692-style Experiment
+                                            length = 16, # 16 bits
+                                            value = high_entropy_flow_ids[self.extended_classification_flow_id_index])
+            ip_packet.options.append(ip_option)
+
+        self.packet /= ip_packet
 
     def ipv6(self):
         dst = self.probe.dst
@@ -51,7 +65,13 @@ class Forge:
         tc = self.flow_ids['tc'] if 'tc' in self.flow_ids else 0
         fl = self.flow_ids['fl'] if 'fl' in self.flow_ids else 0
 
-        self.packet /= scapy.all.IPv6(src=self.src_ip, dst=dst, hlim=self.probe.ttl, tc=tc, fl=fl)
+        ipv6_packet = scapy.all.IPv6(src=self.src_ip, dst=dst, hlim=self.probe.ttl, tc=tc, fl=fl)
+
+        # Placeholder for the Extended classification step
+        #if self.extended_classification_flow_id_index is not None:
+        #    ipv6_packet /= scapy.all.IPv6ExtHdrFragment(offset=high_entropy_flow_ids[self.extended_classification_flow_id_index])
+
+        self.packet /= ipv6_packet
 
     def udp(self):
         sport = self.flow_ids['sport'] if 'sport' in self.flow_ids else 33434

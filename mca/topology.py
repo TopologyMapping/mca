@@ -9,6 +9,7 @@ class Node:
         self.explored_next_hops = False
         self.per_packet_traffic = False
         self.mca_node = False
+        self.chaining_correctness = True
 
     def add_parent(self, node):
         if node not in self.parents:
