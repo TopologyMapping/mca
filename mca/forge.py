@@ -48,7 +48,7 @@ class Forge:
         ip_packet = scapy.all.IP(src=self.src_ip, dst=dst, ttl=self.probe.ttl, tos=tos)
 
         if self.extended_classification_flow_id_index is not None:
-                ip_rfc3692_style_experiment_option = IPOption_RFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
+            ip_rfc3692_style_experiment_option = IPOption_RFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
             ip_packet.options.append(ip_rfc3692_style_experiment_option)
 
         self.packet /= ip_packet
