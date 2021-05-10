@@ -6,6 +6,7 @@ import scapy.all
 from typing import Optional
 
 from mca.flow_ids import high_entropy_flow_ids
+from mca.scapyextensions import IPOption_RFC3692_style_experiment
 
 
 class Forge:
@@ -47,12 +48,8 @@ class Forge:
         ip_packet = scapy.all.IP(src=self.src_ip, dst=dst, ttl=self.probe.ttl, tos=tos)
 
         if self.extended_classification_flow_id_index is not None:
-            ip_option = scapy.all.IPOption(copy_flag = 0, # Don't copy into all fragments of fragmentation
-                                            optclass = 2, # Case 2 format of option
-                                            option = 30, # RFC3692-style Experiment
-                                            length = 16, # 16 bits
-                                            value = high_entropy_flow_ids[self.extended_classification_flow_id_index])
-            ip_packet.options.append(ip_option)
+            ip_rfc3692_style_experiment_option = IPOption_RFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
+            ip_packet.options.append(ip_rfc3692_style_experiment_option)
 
         self.packet /= ip_packet
 
