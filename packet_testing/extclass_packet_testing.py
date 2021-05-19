@@ -5,13 +5,6 @@ from scapy.layers.inet import _IPOption_HDR
 from scapy.layers import inet6
 
 
-parser = argparse.ArgumentParser(description='Tests the packets used during the MCA extended classification step.')
-parser.add_argument('-d', '--destination_ip', required=True,
-                    help='The destination IP address for testing the packets.')
-parser.add_argument('-s', '--send_packets', action='store_true',
-                    help='Send the experiment packets.')
-
-
 class IPOption_RFC3692_style_experiment(scapy.all.IPOption):
     name = "RFC3692-style experiment"
     copy_flag = 0
@@ -89,5 +82,12 @@ class ExtClassExperiment:
                 scapy.all.sendp(tcp_packet)
                 scapy.all.sendp(icmp_packet)
 
-args = parser.parse_args()
-ExtClassExperiment(args.destination_ip, args.send_packets).run()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Tests the packets used during the MCA extended classification step.')
+    parser.add_argument('-d', '--destination_ip', required=True,
+                        help='The destination IP address to test.')
+    parser.add_argument('-s', '--send_packets', action='store_true',
+                        help='Send the experiment packets.')
+
+    args = parser.parse_args()
+    ExtClassExperiment(args.destination_ip, args.send_packets).run()
