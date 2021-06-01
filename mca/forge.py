@@ -6,7 +6,7 @@ import scapy.all
 from typing import Optional
 
 from mca.flow_ids import high_entropy_flow_ids
-from mca.scapyextensions import IPOption_RFC3692_style_experiment
+from mca.scapyextensions import IPOption_RFC3692_style_experiment, IPv6ExtHdrRFC3692_style_experiment
 
 
 class Forge:
@@ -65,8 +65,8 @@ class Forge:
         ipv6_packet = scapy.all.IPv6(src=self.src_ip, dst=dst, hlim=self.probe.ttl, tc=tc, fl=fl)
 
         # Placeholder for the Extended classification step
-        #if self.extended_classification_flow_id_index is not None:
-        #    ipv6_packet /= scapy.all.IPv6ExtHdrFragment(offset=high_entropy_flow_ids[self.extended_classification_flow_id_index])
+        if self.extended_classification_flow_id_index is not None:
+            ipv6_packet /= IPv6ExtHdrRFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
 
         self.packet /= ipv6_packet
 
