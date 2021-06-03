@@ -84,9 +84,9 @@ class ExtClassExperiment:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tests the packets used during the MCA extended classification step.')
-    parser.add_argument('-d', '--destination_ip', required=True,
+    parser.add_argument('-d', '--destination-ip', required=True,
                         help='The destination IP address to test.')
-    parser.add_argument('-s', '--send_packets', action='store_true',
+    parser.add_argument('-s', '--send-packets', action='store_true',
                         help='Send the experiment packets.')
 
     args = parser.parse_args()
