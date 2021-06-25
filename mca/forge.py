@@ -3,10 +3,8 @@ import struct
 import sys
 
 import scapy.all
-from typing import Optional
 
-from mca.flow_ids import high_entropy_flow_ids
-from mca.scapyextensions import IPOption_RFC3692_style_experiment, IPv6ExtHdrRFC3692_style_experiment
+from mca.flow_ids import record_route_flow_ids
 
 
 class Forge:
@@ -48,8 +46,10 @@ class Forge:
         ip_packet = scapy.all.IP(src=self.src_ip, dst=dst, ttl=self.probe.ttl, tos=tos)
 
         if self.extended_classification_flow_id_index is not None:
-            ip_rfc3692_style_experiment_option = IPOption_RFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
-            ip_packet.options.append(ip_rfc3692_style_experiment_option)
+            ip_record_route_option = scapy.all.IPOption_RR(length=7,
+                                                           pointer=8,
+                                                           routers=[record_route_flow_ids[self.extended_classification_flow_id_index]])
+            ip_packet.options.append(ip_record_route_option)
 
         self.packet /= ip_packet
 
@@ -65,8 +65,8 @@ class Forge:
         ipv6_packet = scapy.all.IPv6(src=self.src_ip, dst=dst, hlim=self.probe.ttl, tc=tc, fl=fl)
 
         # Placeholder for the Extended classification step
-        if self.extended_classification_flow_id_index is not None:
-            ipv6_packet /= IPv6ExtHdrRFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
+        #if self.extended_classification_flow_id_index is not None:
+        #    ipv6_packet /= IPv6ExtHdrRFC3692_style_experiment(value=high_entropy_flow_ids[self.extended_classification_flow_id_index])
 
         self.packet /= ipv6_packet
 

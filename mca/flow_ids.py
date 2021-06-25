@@ -256,3 +256,23 @@ high_entropy_flow_ids = (
     58522, #[254]
     62720  #[255]
 )
+
+# IPv4 Record Route route data
+# to be used during extended classification
+
+# We will be varying the 4th byte
+# of the Record Route header,
+# which is the first byte of the
+# route data field.
+record_route_flow_ids = (
+    '0.0.0.0',
+    '1.0.0.0',
+    '2.0.0.0',
+    '4.0.0.0',
+    '8.0.0.0',
+    '16.0.0.0',
+    '32.0.0.0',
+    '64.0.0.0',
+    '128.0.0.0',
+    '255.0.0.0'
+)
