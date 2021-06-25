@@ -1,33 +1,6 @@
 import argparse
 import ipaddress
 import scapy.all
-from scapy.layers.inet import _IPOption_HDR
-from scapy.layers import inet6
-
-
-class IPOption_RFC3692_style_experiment(scapy.all.IPOption):
-    name = "RFC3692-style experiment"
-    copy_flag = 0
-    optclass = 2
-    option = 30
-    fields_desc = [_IPOption_HDR,
-                   scapy.all.ByteField("length", 4),
-                   scapy.all.ShortField("value", 0)
-                  ]
-
-class IPv6ExtHdrRFC3692_style_experiment(inet6._IPv6ExtHdr):
-    name = "IPv6 Extension Header - RFC3692-style experiment Header"
-    fields_desc = [scapy.all.ByteEnumField("nh", 59, scapy.all.ipv6nh),
-                   scapy.all.ByteField("length", 0),
-                   scapy.all.ShortField("value", 0),
-                   scapy.all.ShortField("padding1", 0),
-                   scapy.all.ShortField("padding2", 0)
-                  ]
-    overload_fields = {scapy.all.IPv6: {"nh": 253}}
-
-
-# Ading the RFC3692 class to the ipv6nhcls dict
-inet6.ipv6nhcls[253] = IPv6ExtHdrRFC3692_style_experiment
 
 
 class ExtClassExperiment:
@@ -50,7 +23,7 @@ class ExtClassExperiment:
 
             # IP packet to be used for udp, tcp and icmp
             ip_packet = scapy.all.IP(src=self.__source_ip, dst=dest_ip)
-            ip_packet.options.append(IPOption_RFC3692_style_experiment(value=56059))
+            ip_packet.options.append(scapy.all.IPOption_RR(length=7, pointer=8, routers=['1.0.0.0']))
 
             udp_packet = scapy.all.Ether() / ip_packet / scapy.all.UDP() / self.__payload
             tcp_packet = scapy.all.Ether() / ip_packet / scapy.all.TCP() / self.__payload
@@ -69,12 +42,12 @@ class ExtClassExperiment:
             # packet using the fragment header
             fragment_packet = scapy.all.Ether() / ipv6_packet / scapy.all.IPv6ExtHdrFragment(offset=56059)
 
-            # Packets using RFC3692 - UDP, TCP, ICMP
-            ipv6_rfc3692_header = IPv6ExtHdrRFC3692_style_experiment(value=56059)
+            # Packets using Destination options - UDP, TCP, ICMP
+            ipv6_dest_opt_header = scapy.all.IPv6ExtHdrDestOpt(options=scapy.all.PadN(optdata='0'))
 
-            udp_packet = scapy.all.Ether() / ipv6_packet / ipv6_rfc3692_header / scapy.all.UDP() / self.__payload
-            tcp_packet = scapy.all.Ether() / ipv6_packet / ipv6_rfc3692_header / scapy.all.TCP() / self.__payload
-            icmp_packet = scapy.all.Ether() / ipv6_packet / ipv6_rfc3692_header / scapy.all.ICMPv6EchoRequest() / self.__payload
+            udp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.UDP() / self.__payload
+            tcp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.TCP() / self.__payload
+            icmp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.ICMPv6EchoRequest() / self.__payload
 
             if self.__send_packets:
                 scapy.all.sendp(fragment_packet)
