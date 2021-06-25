@@ -256,3 +256,24 @@ high_entropy_flow_ids = (
     58522, #[254]
     62720  #[255]
 )
+
+# IPv6 Destination Options PadN option data
+# to be used during extended classification
+
+# We will be varying the 4th byte
+# of the Destination Options header,
+# which is the Opt Data Len of the
+# PadN. To achieve that, we'll increment
+# Option Data by one byte each round.
+dest_opts_flow_ids = (
+    '0',
+    '00',
+    '000',
+    '0000',
+    '00000',
+    '000000',
+    '0000000',
+    '00000000',
+    '000000000',
+    '0000000000',
+)
