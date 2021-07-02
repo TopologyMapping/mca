@@ -242,7 +242,7 @@ class Identifiers:
 
         """
         value = self.extclass_ttlip2nextid[ttl][ip]
-        if value > 9:
+        if value > 8:
             return None
         self.extclass_ttlip2nextid[ttl][ip] += 1
         return value
