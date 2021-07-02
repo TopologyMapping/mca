@@ -257,6 +257,25 @@ high_entropy_flow_ids = (
     62720  #[255]
 )
 
+# IPv4 Record Route route data
+# to be used during extended classification
+
+# We will be varying the 4th byte
+# of the Record Route header,
+# which is the first byte of the
+# route data field.
+record_route_flow_ids = (
+    '75.0.0.0',
+    '145.0.0.0',
+    '207.0.0.0',
+    '124.0.0.0',
+    '132.0.0.0',
+    '175.0.0.0',
+    '53.0.0.0',
+    '106.0.0.0',
+    '173.0.0.0'
+)
+
 # IPv6 Destination Options PadN option data
 # to be used during extended classification
 
