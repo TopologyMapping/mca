@@ -42,9 +42,6 @@ class ExtClassExperiment:
 
             ipv6_packet = scapy.all.IPv6(src=self.__source_ip, dst=dest_ip)
 
-            # packet using the fragment header
-            fragment_packet = scapy.all.Ether() / ipv6_packet / scapy.all.IPv6ExtHdrFragment(offset=56059)
-
             # Packets using Destination options - UDP, TCP, ICMP
             # NOTE: Directly passing the length argument to IPv6ExtHdrDestOpt does not
             # yield the padded result, so we're resorting to filling in optdata directly.
@@ -55,7 +52,6 @@ class ExtClassExperiment:
             icmp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.ICMPv6EchoRequest() / self.__payload
 
             if self.__send_packets:
-                scapy.all.sendp(fragment_packet)
                 scapy.all.sendp(udp_packet)
                 scapy.all.sendp(tcp_packet)
                 scapy.all.sendp(icmp_packet)
