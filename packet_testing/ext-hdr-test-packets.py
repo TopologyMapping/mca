@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
+
 import argparse
 import ipaddress
 import scapy.all
 
 
 class ExtClassExperiment:
-    def __init__(self, destination_ip: str, send_packets: bool) -> None:
+    def __init__(self, destination_ip, send_packets):
         self.__destination_ip = destination_ip
         self.__send_packets = send_packets
 
@@ -55,6 +57,7 @@ class ExtClassExperiment:
                 scapy.all.sendp(udp_packet)
                 scapy.all.sendp(tcp_packet)
                 scapy.all.sendp(icmp_packet)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tests the packets used during the MCA extended classification step.')
