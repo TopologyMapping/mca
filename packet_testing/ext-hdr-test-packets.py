@@ -28,8 +28,8 @@ class ExtClassExperiment:
             #       (2) length field works correctly for values below 39
             ip_packet.options.append(scapy.all.IPOption_RR(length=7, pointer=8, routers=['1.0.0.0']))
 
-            udp_packet = scapy.all.Ether() / ip_packet / scapy.all.UDP() / self.__payload
-            tcp_packet = scapy.all.Ether() / ip_packet / scapy.all.TCP() / self.__payload
+            udp_packet = scapy.all.Ether() / ip_packet / scapy.all.UDP(dport=50001) / self.__payload
+            tcp_packet = scapy.all.Ether() / ip_packet / scapy.all.TCP(dport=50000) / self.__payload
             icmp_packet = scapy.all.Ether() / ip_packet / scapy.all.ICMP() / self.__payload
 
             if self.__send_packets:
@@ -50,8 +50,8 @@ class ExtClassExperiment:
             # yield the padded result, so we're resorting to filling in optdata directly.
             ipv6_dest_opt_header = scapy.all.IPv6ExtHdrDestOpt(options=scapy.all.PadN(optdata='0'))
 
-            udp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.UDP() / self.__payload
-            tcp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.TCP() / self.__payload
+            udp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.UDP(dport=50001) / self.__payload
+            tcp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.TCP(dport=50000) / self.__payload
             icmp_packet = scapy.all.Ether() / ipv6_packet / ipv6_dest_opt_header / scapy.all.ICMPv6EchoRequest() / self.__payload
 
             if self.__send_packets:
